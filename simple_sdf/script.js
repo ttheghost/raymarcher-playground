@@ -1,4 +1,4 @@
-import { Entities } from "./entities.js";
+import { Entities, EntityType } from "./entities.js";
 
 class Engine {
   constructor(userShaderCode) {
@@ -104,7 +104,7 @@ class Engine {
   }
 
   initShaders() {
-    this.fragmentShaderSource = `#version 300 es
+    const fragmentShaderSource = `#version 300 es
       precision highp float;
 
       uniform vec2  iResolution;
@@ -121,18 +121,18 @@ class Engine {
       }
     `;
 
-    this.vsSource = `#version 300 es
+    const vsSource = `#version 300 es
       in vec2 aPos;
       void main() {
         gl_Position = vec4(aPos, 0.0, 1.0);
       }
     `;
 
-    this.vs = this.compileShader(this.vsSource, this.gl.VERTEX_SHADER);
-    this.fs = this.compileShader(this.fragmentShaderSource, this.gl.FRAGMENT_SHADER);
-    if (!this.vs || !this.fs) throw new Error('Shader compilation failed');
+    const vs = this.compileShader(vsSource, this.gl.VERTEX_SHADER);
+    const fs = this.compileShader(fragmentShaderSource, this.gl.FRAGMENT_SHADER);
+    if (!vs || !fs) throw new Error('Shader compilation failed');
 
-    this.program = this.createProgram(this.vs, this.fs);
+    this.program = this.createProgram(vs, fs);
     if (!this.program) throw new Error('Program link failed');
 
     this.gl.useProgram(this.program);
@@ -140,12 +140,32 @@ class Engine {
     this.uResolution = this.gl.getUniformLocation(this.program, 'iResolution');
     this.uTime = this.gl.getUniformLocation(this.program, 'iTime');
     this.uMouse = this.gl.getUniformLocation(this.program, 'iMouse');
-    this.uEntityTexture = this.gl.createTexture();
-    const loc = this.gl.getUniformLocation(this.program, "iEntityTexture");
-    this.gl.uniform1i(loc, 0);
+    this.uEntityCount = this.gl.getUniformLocation(this.program, "iEntityCount");
+
+    this.texture = this.gl.createTexture();
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
-    this.uEntityCount = this.gl.getUniformLocation(this.program, "iEntityCount");
+
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+
+    const initialData = this.entities.toF32Array();
+    this.gl.texImage2D(
+      this.gl.TEXTURE_2D,
+      0,
+      this.gl.RGBA32F,
+      this.entities.maxEntities * 4, // width
+      1,                             // height
+      0,
+      this.gl.RGBA,
+      this.gl.FLOAT,
+      initialData
+    );
+
+    const loc = this.gl.getUniformLocation(this.program, "iEntityTexture");
+    this.gl.uniform1i(loc, 0);
 
     // ─── Vertex data ────────────────────────────────────────────────
     this.vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
@@ -232,6 +252,8 @@ class Engine {
       this.frameTimeElement.textContent = this.avgFrameTime.toFixed(1);
     }
 
+    this.updateEntityTexture();
+
     const w = this.canvas.width;
     const h = this.canvas.height;
     const iMouseX = this.orbit.theta * 100.0;
@@ -239,7 +261,8 @@ class Engine {
 
     this.gl.uniform2f(this.uResolution, w, h);
     this.gl.uniform1f(this.uTime, elapsed);
-    this.gl.uniform4f(this.uMouse, this.iMouseX, this.iMouseY, 0.0, 0.0);
+    this.gl.uniform4f(this.uMouse, iMouseX, iMouseY, 0.0, 0.0);
+    this.gl.uniform1i(this.uEntityCount, this.entities.count());
 
     this.gl.clearColor(0.02, 0.02, 0.04, 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -258,13 +281,31 @@ async function loadShader() {
     let engine = new Engine(userShaderCode);
 
     engine.entities.add(
-      { x: 0, y: 2, z: 2 },            // position
-      { r: 0.2, g: 0.8, b: 0.2 },      // green
-      0.8,                             // radius
-      0.3,                             // roughness
-      0.2,                             // metallic
-      0,                               // type: sphere
-      1                                // flags: active
+      { x: -1.5, y: 0.0, z: 0.0 },       // position
+      { r: 0.9, g: 0.95, b: 1.0 },       // baseColor (chrome)
+      1.0,                               // radius
+      0.01,                              // roughness
+      0.9,                               // metallic
+      EntityType.SPHERE,                 // type: 0 = sphere
+      1                                  // flags: active
+    );
+    engine.entities.add(
+      { x: 1.5, y: 0.0, z: 0.0 },        // position
+      { r: 1.0, g: 0.75, b: 0.3 },       // baseColor (gold)
+      1.0,                               // radius
+      0.15,                              // roughness
+      0.85,                              // metallic
+      EntityType.BOX,                 // type: 0 = sphere
+      1                                  // flags: active
+    );
+    engine.entities.add(
+      { x: 0.0, y: -1.0, z: 0.0 },       // position (floor plane)
+      { r: 0, g: 0, b: 0 },        // baseColor
+      0.0,                               // radius (unused for plane)
+      0.4,                               // roughness
+      0.0,                               // metallic
+      EntityType.PLANE,                  // type: 2 = plane
+      1                                  // flags: active
     );
 
     window.engine = engine;

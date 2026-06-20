@@ -1,3 +1,13 @@
+const EntityType = {
+  SPHERE: 0,
+  BOX: 1,
+  PLANE: 2
+};
+
+const Flags = {
+  ACTIVE: 1
+};
+
 class Entities {
   constructor(maxEntities = 256) {
     this.maxEntities = maxEntities;
@@ -125,4 +135,4 @@ class Entities {
   }
 }
 
-export { Entities };
+export { Entities, EntityType };
