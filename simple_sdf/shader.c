@@ -4,10 +4,10 @@
 // uniform sampler2D iEntityTexture;
 // uniform int iEntityCount;
 
-#define MAX_STEPS 50
+#define MAX_STEPS 150
 #define MAX_DIST 30.
 #define SURF_DIST .001
-#define MAX_BOUNCES 3
+#define MAX_BOUNCES 6
 
 #define SHADOW_K 12.0
 #define AO_STEPS 5

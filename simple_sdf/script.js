@@ -293,31 +293,6 @@ const entityCountSpan = document.getElementById('entityCount');
 const entityCountDisplay = document.getElementById('entityCountDisplay');
 const fpsDisplay = document.getElementById('fpsDisplay');
 
-function initDefaultScene() {
-  const e = state.entities;
-
-  // Chrome sphere (bobbing)
-  e.add(
-    { x: -1.5, y: 0.0, z: 0.0 },
-    { r: 0.9, g: 0.95, b: 1.0 },
-    1.0, 0.01, 0.9, 0, 1
-  );
-
-  // Gold sphere (bobbing)
-  e.add(
-    { x: 1.5, y: 0.0, z: 0.0 },
-    { r: 1.0, g: 0.75, b: 0.3 },
-    1.0, 0.15, 0.85, 0, 1
-  );
-
-  // Floor
-  e.add(
-    { x: 0.0, y: -1.0, z: 0.0 },
-    { r: 0.8, g: 0.8, b: 0.8 },
-    0.0, 0.4, 0.0, 2, 1
-  );
-}
-
 function renderTable() {
   const entities = state.entities.entities;
   let html = '';
@@ -512,7 +487,7 @@ async function loadShader() {
       { x: -1.5, y: 0.0, z: 0.0 },       // position
       { r: 0.9, g: 0.95, b: 1.0 },       // baseColor (chrome)
       { x: 1.0, y: 1.0, z: 1.0 },        // scale
-      0.01,                              // roughness
+      1.0,                              // roughness
       0.9,                               // metallic
       EntityType.SPHERE,                 // type: 0 = sphere
       1                                  // flags: active
@@ -522,19 +497,29 @@ async function loadShader() {
       { x: 1.5, y: 0.0, z: 0.0 },        // position
       { r: 1.0, g: 0.75, b: 0.3 },       // baseColor (gold)
       { x: 1.0, y: 1.0, z: 1.0 },        // scale
-      0.15,                              // roughness
-      0.85,                              // metallic
+      0.5,                              // roughness
+      0.5,                              // metallic
       EntityType.BOX,                 // type: 0 = sphere
       1                                  // flags: active
     );
     engine.entities.add(
       { x: 0.0, y: 0.0, z: 0.0 },// rotation
       { x: 0.0, y: -1.0, z: 0.0 },       // position (floor plane)
-      { r: 0, g: 0, b: 0 },        // baseColor
+      { r: 0.0, g: 0.4, b: 0.3 },        // baseColor
       { x: 1.0, y: 1.0, z: 1.0 },        // scale
-      0.4,                               // roughness
-      0.0,                               // metallic
+      1.0,                               // roughness
+      0.5,                               // metallic
       EntityType.PLANE,                  // type: 2 = plane
+      1                                  // flags: active
+    );
+    engine.entities.add(
+      { x: 0.0, y: 0.0, z: 0.0 },// rotation
+      { x: 0.0, y: 0.0, z: -3.0 },       // position (floor plane)
+      { r: 1.0, g: 1.0, b: 1.0 },        // baseColor
+      { x: 3.0, y: 5.0, z: 1.0 },        // scale
+      0.1,                               // roughness
+      1.0,                               // metallic
+      EntityType.BOX,                  // type: 2 = plane
       1                                  // flags: active
     );
 
