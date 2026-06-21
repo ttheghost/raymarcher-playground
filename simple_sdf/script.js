@@ -369,14 +369,22 @@ function renderTable() {
                   </div>
               </td>
               <td>
+                  <div style="display:flex;gap:2px;">
+                      <input class="entity-input-sm" type="number" step="0.1" 
+                          value="${e.scale.x.toFixed(2)}" 
+                          data-id="${i}" data-field="scaleX" onchange="updateEntity(this)" />
+                      <input class="entity-input-sm" type="number" step="0.1" 
+                          value="${e.scale.y.toFixed(2)}" 
+                          data-id="${i}" data-field="scaleY" onchange="updateEntity(this)" />
+                      <input class="entity-input-sm" type="number" step="0.1" 
+                          value="${e.scale.z.toFixed(2)}" 
+                          data-id="${i}" data-field="scaleZ" onchange="updateEntity(this)" />
+                  </div>
+              </td>
+              <td>
                   <input class="color-picker" type="color" 
                       value="${colorHex}" 
                       data-id="${i}" data-field="color" onchange="updateEntity(this)" />
-              </td>
-              <td>
-                  <input class="entity-input-sm" type="number" step="0.05" 
-                      value="${e.radius.toFixed(2)}" 
-                      data-id="${i}" data-field="radius" onchange="updateEntity(this)" />
               </td>
               <td>
                   <input class="entity-input-sm" type="number" step="0.05" min="0" max="1"
@@ -412,9 +420,11 @@ window.addEntity = function () {
   const posX = parseFloat(document.getElementById('addpX').value) || 0;
   const posY = parseFloat(document.getElementById('addpY').value) || 0;
   const posZ = parseFloat(document.getElementById('addpZ').value) || 0;
+  const sclX = parseFloat(document.getElementById('addsX').value) || 1;
+  const sclY = parseFloat(document.getElementById('addsY').value) || 1;
+  const sclZ = parseFloat(document.getElementById('addsZ').value) || 1;
   const colorHex = document.getElementById('addColor').value;
   const rgb = hexToRgb(colorHex);
-  const radius = parseFloat(document.getElementById('addRadius').value) || 0.5;
   const roughness = parseFloat(document.getElementById('addRoughness').value) || 0.1;
   const metallic = parseFloat(document.getElementById('addMetallic').value) || 0.5;
   const type = parseInt(document.getElementById('addType').value);
@@ -423,7 +433,8 @@ window.addEntity = function () {
     { x: rotX, y: rotY, z: rotZ, w: rotW },
     { x: posX, y: posY, z: posZ },
     { r: rgb.r, g: rgb.g, b: rgb.b },
-    radius, roughness, metallic, type, 1
+    { x: sclX, y: sclY, z: sclZ },
+    roughness, metallic, type, 1
   );
 
   updateScene();
@@ -453,6 +464,9 @@ window.updateEntity = function (element) {
     case 'posX': entity.position.x = parseFloat(value); break;
     case 'posY': entity.position.y = parseFloat(value); break;
     case 'posZ': entity.position.z = parseFloat(value); break;
+    case 'scaleX': entity.scale.x = parseFloat(value); break;
+    case 'scaleY': entity.scale.y = parseFloat(value); break;
+    case 'scaleZ': entity.scale.z = parseFloat(value); break;
     case 'color': {
       const rgb = hexToRgb(value);
       entity.baseColor.r = rgb.r;
@@ -502,7 +516,7 @@ async function loadShader() {
       { x: 0.0, y: 0.0, z: 0.0, w: 0.0 },// rotation (quaternion)
       { x: -1.5, y: 0.0, z: 0.0 },       // position
       { r: 0.9, g: 0.95, b: 1.0 },       // baseColor (chrome)
-      1.0,                               // radius
+      { x: 1.0, y: 1.0, z: 1.0 },        // scale
       0.01,                              // roughness
       0.9,                               // metallic
       EntityType.SPHERE,                 // type: 0 = sphere
@@ -512,7 +526,7 @@ async function loadShader() {
       { x: 0.0, y: 0.0, z: 0.0, w: 0.0 },// rotation (quaternion)
       { x: 1.5, y: 0.0, z: 0.0 },        // position
       { r: 1.0, g: 0.75, b: 0.3 },       // baseColor (gold)
-      1.0,                               // radius
+      { x: 1.0, y: 1.0, z: 1.0 },        // scale
       0.15,                              // roughness
       0.85,                              // metallic
       EntityType.BOX,                 // type: 0 = sphere
@@ -522,7 +536,7 @@ async function loadShader() {
       { x: 0.0, y: 0.0, z: 0.0, w: 0.0 },// rotation (quaternion)
       { x: 0.0, y: -1.0, z: 0.0 },       // position (floor plane)
       { r: 0, g: 0, b: 0 },        // baseColor
-      0.0,                               // radius (unused for plane)
+      { x: 1.0, y: 1.0, z: 1.0 },        // scale
       0.4,                               // roughness
       0.0,                               // metallic
       EntityType.PLANE,                  // type: 2 = plane

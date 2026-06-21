@@ -16,7 +16,7 @@ class Entities {
     this.nextId = 0;
   }
 
-  add(rotation, position, baseColor, radius, roughness, metallic, type, flags) {
+  add(rotation, position, baseColor, scale, roughness, metallic, type, flags) {
     if (this.entities.length >= this.maxEntities) {
       console.warn('Entities: max capacity reached');
       return -1;
@@ -26,7 +26,7 @@ class Entities {
       rotation: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w },
       position: { x: position.x, y: position.y, z: position.z },
       baseColor: { r: baseColor.r, g: baseColor.g, b: baseColor.b },
-      radius: radius,
+      scale: { x: scale.x, y: scale.y, z: scale.z },
       roughness: roughness,
       metallic: metallic,
       type: type,
@@ -48,7 +48,7 @@ class Entities {
     return this.entities[id] || null;
   }
 
-  update(id, rotation, position, baseColor, radius, roughness, metallic, type, flags) {
+  update(id, rotation, position, baseColor, scale, roughness, metallic, type, flags) {
     if (id >= this.entities.length || !this.entities[id]) {
       console.warn(`Entities: invalid ID ${id}`);
       return false;
@@ -72,7 +72,11 @@ class Entities {
       e.baseColor.g = baseColor.g;
       e.baseColor.b = baseColor.b;
     }
-    if (radius !== undefined) e.radius = radius;
+    if (scale) {
+      e.scale.x = scale.x;
+      e.scale.y = scale.y;
+      e.scale.z = scale.z;
+    }
     if (roughness !== undefined) e.roughness = roughness;
     if (metallic !== undefined) e.metallic = metallic;
     if (type !== undefined) e.type = type;
@@ -96,7 +100,7 @@ class Entities {
   }
 
   toF32Array() {
-    const totalSize = this.maxEntities * 16;
+    const totalSize = this.maxEntities * 4 * 5; // 5 texels per entity, 4 floats per texel
     let arr = new Float32Array(totalSize);
     let offset = 0;
 
@@ -104,12 +108,12 @@ class Entities {
       const e = this.entities[i];
       if (e === null) continue;
 
-      const base = offset * 16;
-      // Texel 0: position + radius
+      const base = offset * 4 * 5;
+      // Texel 0: position + metallic
       arr[base + 0] = e.position.x;
       arr[base + 1] = e.position.y;
       arr[base + 2] = e.position.z;
-      arr[base + 3] = e.radius;
+      arr[base + 3] = e.metallic;
 
       // Texel 1: baseColor + roughness
       arr[base + 4] = e.baseColor.r;
@@ -117,10 +121,10 @@ class Entities {
       arr[base + 6] = e.baseColor.b;
       arr[base + 7] = e.roughness;
 
-      // Texel 2: metallic + type + flags + padding
-      arr[base + 8] = e.metallic;
-      arr[base + 9] = e.type;
-      arr[base + 10] = e.flags;
+      // Texel 2: type + flags + padding
+      arr[base + 8] = e.type;
+      arr[base + 9] = e.flags;
+      arr[base + 10] = 0.0;
       arr[base + 11] = 0.0;
 
       // Texel 3: quaternion rotation
@@ -128,6 +132,12 @@ class Entities {
       arr[base + 13] = e.rotation.y;
       arr[base + 14] = e.rotation.z;
       arr[base + 15] = e.rotation.w;
+
+      // Texel 4: scale + padding
+      arr[base + 16] = e.scale.x;
+      arr[base + 17] = e.scale.y;
+      arr[base + 18] = e.scale.z;
+      arr[base + 19] = 0.0;
 
       offset++;
     }

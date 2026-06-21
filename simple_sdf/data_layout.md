@@ -25,7 +25,7 @@ struct Entity {
     vec4 rotation;   // 16 bytes (quaternion for rotation)
     vec3 position;   // 12 bytes
     vec3 baseColor;  // 12 bytes
-    float radius;    // 4 bytes (if sphere) or scale
+    vec3 scale;      // 12 bytes
     float roughness; // 4 bytes
     float metallic;  // 4 bytes
     int type;        // 4 bytes (0=sphere, 1=box, 2=plane, ...)
@@ -39,9 +39,10 @@ This layout requires 12 floating-point values in total.
 
 The entity data is packed into an `RGBA32F` texture as follows:
 
-- Texel 0: `(position.x, position.y, position.z, radius)`
+- Texel 0: `(position.x, position.y, position.z, metallic)`
 - Texel 1: `(baseColor.r, baseColor.g, baseColor.b, roughness)`
-- Texel 2: `(metallic, type, flags, 0.0)`
+- Texel 2: `(type, flags, 0.0, 0.0)`
 - Texel 3: `(rotation.x, rotation.y, rotation.z, rotation.w)`
+- Texel 4: `(scale.x, scale.y, scale.z, 0.0)`
 
 Using a texture-based layout allows an arbitrary number of entities to be uploaded from JavaScript and accessed efficiently from the fragment shader, providing functionality similar to a storage buffer while remaining compatible with WebGL 2.

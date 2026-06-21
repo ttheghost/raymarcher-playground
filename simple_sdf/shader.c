@@ -12,52 +12,68 @@
 const uint SPHERE = 0u;
 const uint BOX = 1u;
 const uint PLANE = 2u;
+const uint TORUS = 3u;
 
-void getEntityData(int index, out vec4 rot, out vec3 pos, out vec3 color, out float radius,
-                   out float roughness, out float metallic, out uint type, out uint flags)
+// Helper
+vec4 quatConjugate(vec4 q)
 {
-    int base = index * 4;
+    return vec4(-q.xyz, q.w);
+}
+
+vec3 quatRotate(vec4 q, vec3 v)
+{
+    return v + 2.0 * cross(q.xyz,
+                           cross(q.xyz, v) + q.w * v);
+}
+
+void getEntityData(int index, out vec4 rot, out vec3 pos, out vec3 color, out vec3 scale,
+    out float roughness, out float metallic, out uint type, out uint flags)
+{
+    int base = index * 5;
 
     vec4 texel_0 = texelFetch(iEntityTexture, ivec2(base, 0), 0);
     vec4 texel_1 = texelFetch(iEntityTexture, ivec2(base + 1, 0), 0);
     vec4 texel_2 = texelFetch(iEntityTexture, ivec2(base + 2, 0), 0);
     vec4 texel_3 = texelFetch(iEntityTexture, ivec2(base + 3, 0), 0);
+    vec4 texel_4 = texelFetch(iEntityTexture, ivec2(base + 4, 0), 0);
 
     pos = texel_0.xyz;
-    radius = texel_0.w;
+    metallic = texel_0.w;
     color = texel_1.xyz;
     roughness = texel_1.w;
-    metallic = texel_2.x;
-    type = uint(texel_2.y + 0.5);
-    flags = uint(texel_2.z + 0.5);
+    type = uint(texel_2.x + 0.5);
+    flags = uint(texel_2.y + 0.5);
     rot = texel_3;
+    scale = texel_4.xyz;
 }
 
-void getSimpleEntityData(int index, out vec4 rot, out vec3 pos, out float radius, out uint type, out uint flags)
+void getSimpleEntityData(int index, out vec4 rot, out vec3 pos, out vec3 scale, out uint type,
+    out uint flags)
 {
-    int base = index * 4;
+    int base = index * 5;
 
     vec4 texel_0 = texelFetch(iEntityTexture, ivec2(base, 0), 0);
     vec4 texel_2 = texelFetch(iEntityTexture, ivec2(base + 2, 0), 0);
     vec4 texel_3 = texelFetch(iEntityTexture, ivec2(base + 3, 0), 0);
+    vec4 texel_4 = texelFetch(iEntityTexture, ivec2(base + 4, 0), 0);
 
     pos = texel_0.xyz;
-    radius = texel_0.w;
-    type = uint(texel_2.y + 0.5);
-    flags = uint(texel_2.z + 0.5);
+    type = uint(texel_2.x + 0.5);
+    flags = uint(texel_2.y + 0.5);
     rot = texel_3;
+    scale = texel_4.xyz;
 }
 
 void getMaterial(int index, out vec3 color, out float roughness, out float metallic)
 {
-    int base = index * 4;
+    int base = index * 5;
 
+    vec4 texel_0 = texelFetch(iEntityTexture, ivec2(base, 0), 0);
     vec4 texel_1 = texelFetch(iEntityTexture, ivec2(base + 1, 0), 0);
-    vec4 texel_2 = texelFetch(iEntityTexture, ivec2(base + 2, 0), 0);
 
+    metallic = texel_0.w;
     color = texel_1.xyz;
     roughness = texel_1.w;
-    metallic = texel_2.x;
 }
 
 float GetDist(vec3 p, out int index)
@@ -67,26 +83,31 @@ float GetDist(vec3 p, out int index)
     {
         float d = 1e20;
         vec4 rot;
-        vec3 pos;
-        float radius;
+        vec3 pos, scale;
         uint type, flags;
-        getSimpleEntityData(i, rot, pos, radius, type, flags);
+        getSimpleEntityData(i, rot, pos, scale, type, flags);
 
         if (flags == 0u)
             continue;
 
+        vec3 localP = quatRotate(quatConjugate(rot), p - pos);
+
         switch (type)
         {
         case SPHERE:
-            d = length(p - pos) - radius;
+            d = (length(localP / scale) - 1.0) * min(min(scale.x, scale.y), scale.z);
             break;
         case BOX:
-            vec3 q = abs(p - pos) - vec3(radius); // radius means size here
+            vec3 q = abs(localP) - scale;
             d = length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
             break;
         case PLANE:
             vec3 normal = vec3(0.0, 1.0, 0.0);
-            d = dot(p - pos, normal);
+            d = dot(localP, normal);
+            break;
+        case TORUS:
+            vec2 q_ = vec2(length(localP.xz) - scale.x, localP.y);
+            d = length(q_) - scale.y;
             break;
         default:
             d = 1e20;

@@ -39,8 +39,8 @@
               <th style="width:60px;">Type</th>
               <th>Rot</th>
               <th>Pos</th>
+              <th>Scale</th>
               <th>Color</th>
-              <th style="width:40px;">R</th>
               <th style="width:40px;">S</th>
               <th style="width:40px;">M</th>
               <th style="width:60px;">Actions</th>
@@ -67,8 +67,10 @@
           <input type="number" id="addpX" class="entity-input-sm" value="0" step="0.1" placeholder="px" />
           <input type="number" id="addpY" class="entity-input-sm" value="0" step="0.1" placeholder="py" />
           <input type="number" id="addpZ" class="entity-input-sm" value="0" step="0.1" placeholder="pz" />
+          <input type="number" id="addsX" class="entity-input-sm" value="1" step="0.1" placeholder="sx" />
+          <input type="number" id="addsY" class="entity-input-sm" value="1" step="0.1" placeholder="sy" />
+          <input type="number" id="addsZ" class="entity-input-sm" value="1" step="0.1" placeholder="sz" />
           <input type="color" id="addColor" class="color-picker" value="#ff6b6b" />
-          <input type="number" id="addRadius" class="entity-input-sm" value="0.5" step="0.1" placeholder="R" />
           <input type="number" id="addRoughness" class="entity-input-sm" value="0.1" step="0.05" placeholder="Rough" />
           <input type="number" id="addMetallic" class="entity-input-sm" value="0.5" step="0.05" placeholder="Met" />
           <button class="btn btn-primary" onclick="addEntity()">+ Add</button>
