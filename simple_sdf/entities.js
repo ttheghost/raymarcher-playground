@@ -8,6 +8,19 @@ const Flags = {
   ACTIVE: 1
 };
 
+function eulerToQuaternion({ x, y, z }) {
+  const cx = Math.cos(x / 2), sx = Math.sin(x / 2);
+  const cy = Math.cos(y / 2), sy = Math.sin(y / 2);
+  const cz = Math.cos(z / 2), sz = Math.sin(z / 2);
+
+  return {
+    x:  sx * cy * cz + cx * sy * sz,
+    y:  cx * sy * cz - sx * cy * sz,
+    z:  cx * cy * sz + sx * sy * cz,
+    w:  cx * cy * cz - sx * sy * sz,
+  };
+}
+
 class Entities {
   constructor(maxEntities = 256) {
     this.maxEntities = maxEntities;
@@ -23,7 +36,7 @@ class Entities {
     }
 
     const entity = {
-      rotation: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w },
+      rotation: { x: rotation.x, y: rotation.y, z: rotation.z }, // euler
       position: { x: position.x, y: position.y, z: position.z },
       baseColor: { r: baseColor.r, g: baseColor.g, b: baseColor.b },
       scale: { x: scale.x, y: scale.y, z: scale.z },
@@ -60,7 +73,6 @@ class Entities {
       e.rotation.x = rotation.x;
       e.rotation.y = rotation.y;
       e.rotation.z = rotation.z;
-      e.rotation.w = rotation.w;
     }
     if (position) {
       e.position.x = position.x;
@@ -108,6 +120,8 @@ class Entities {
       const e = this.entities[i];
       if (e === null) continue;
 
+      const quat = eulerToQuaternion(e.rotation);
+
       const base = offset * 4 * 5;
       // Texel 0: position + metallic
       arr[base + 0] = e.position.x;
@@ -128,10 +142,10 @@ class Entities {
       arr[base + 11] = 0.0;
 
       // Texel 3: quaternion rotation
-      arr[base + 12] = e.rotation.x;
-      arr[base + 13] = e.rotation.y;
-      arr[base + 14] = e.rotation.z;
-      arr[base + 15] = e.rotation.w;
+      arr[base + 12] = quat.x;
+      arr[base + 13] = quat.y;
+      arr[base + 14] = quat.z;
+      arr[base + 15] = quat.w;
 
       // Texel 4: scale + padding
       arr[base + 16] = e.scale.x;

@@ -328,7 +328,6 @@ function renderTable() {
     const isSelected = state.selectedId === i;
     const typeNames = ['Sphere', 'Box', 'Plane'];
     const colorHex = rgbToHex(e.baseColor.r, e.baseColor.g, e.baseColor.b);
-
     html += `
           <tr style="${isSelected ? 'background: #1a2a3a;' : ''}">
               <td style="color:#6a7a8a;">${i}</td>
@@ -350,9 +349,6 @@ function renderTable() {
                       <input class="entity-input-sm" type="number" step="0.1" 
                           value="${e.rotation.z.toFixed(2)}" 
                           data-id="${i}" data-field="rotZ" onchange="updateEntity(this)" />
-                      <input class="entity-input-sm" type="number" step="0.1" 
-                          value="${e.rotation.w.toFixed(2)}" 
-                          data-id="${i}" data-field="rotW" onchange="updateEntity(this)" />
                   </div>
               </td>
               <td>
@@ -416,7 +412,6 @@ window.addEntity = function () {
   const rotX = parseFloat(document.getElementById('addrX').value) || 0;
   const rotY = parseFloat(document.getElementById('addrY').value) || 0;
   const rotZ = parseFloat(document.getElementById('addrZ').value) || 0;
-  const rotW = parseFloat(document.getElementById('addrW').value) || 0;
   const posX = parseFloat(document.getElementById('addpX').value) || 0;
   const posY = parseFloat(document.getElementById('addpY').value) || 0;
   const posZ = parseFloat(document.getElementById('addpZ').value) || 0;
@@ -430,7 +425,7 @@ window.addEntity = function () {
   const type = parseInt(document.getElementById('addType').value);
 
   state.entities.add(
-    { x: rotX, y: rotY, z: rotZ, w: rotW },
+    { x: rotX, y: rotY, z: rotZ },
     { x: posX, y: posY, z: posZ },
     { r: rgb.r, g: rgb.g, b: rgb.b },
     { x: sclX, y: sclY, z: sclZ },
@@ -513,7 +508,7 @@ async function loadShader() {
     let engine = new Engine(state.entities, canvas, userShaderCode);
 
     engine.entities.add(
-      { x: 0.0, y: 0.0, z: 0.0, w: 0.0 },// rotation (quaternion)
+      { x: 0.0, y: 0.0, z: 0.0, w: 1.0 },// rotation (quaternion)
       { x: -1.5, y: 0.0, z: 0.0 },       // position
       { r: 0.9, g: 0.95, b: 1.0 },       // baseColor (chrome)
       { x: 1.0, y: 1.0, z: 1.0 },        // scale
@@ -523,7 +518,7 @@ async function loadShader() {
       1                                  // flags: active
     );
     engine.entities.add(
-      { x: 0.0, y: 0.0, z: 0.0, w: 0.0 },// rotation (quaternion)
+      { x: 0.0, y: 0.0, z: 0.0, w: 1.0 },// rotation (quaternion)
       { x: 1.5, y: 0.0, z: 0.0 },        // position
       { r: 1.0, g: 0.75, b: 0.3 },       // baseColor (gold)
       { x: 1.0, y: 1.0, z: 1.0 },        // scale
@@ -533,7 +528,7 @@ async function loadShader() {
       1                                  // flags: active
     );
     engine.entities.add(
-      { x: 0.0, y: 0.0, z: 0.0, w: 0.0 },// rotation (quaternion)
+      { x: 0.0, y: 0.0, z: 0.0, w: 1.0 },// rotation (quaternion)
       { x: 0.0, y: -1.0, z: 0.0 },       // position (floor plane)
       { r: 0, g: 0, b: 0 },        // baseColor
       { x: 1.0, y: 1.0, z: 1.0 },        // scale
