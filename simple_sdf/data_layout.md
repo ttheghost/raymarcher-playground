@@ -22,6 +22,7 @@ Each scene object is represented by the following structure:
 
 ```c
 struct Entity {
+    vec4 rotation;   // 16 bytes (quaternion for rotation)
     vec3 position;   // 12 bytes
     vec3 baseColor;  // 12 bytes
     float radius;    // 4 bytes (if sphere) or scale
@@ -41,8 +42,6 @@ The entity data is packed into an `RGBA32F` texture as follows:
 - Texel 0: `(position.x, position.y, position.z, radius)`
 - Texel 1: `(baseColor.r, baseColor.g, baseColor.b, roughness)`
 - Texel 2: `(metallic, type, flags, 0.0)`
-- Texel 3: unused padding (Reserved)
-
-The fourth texel is currently unused and reserved for future expansion. Possible uses include object rotation, emissive intensity, object identifiers, animation parameters, or additional material properties.
+- Texel 3: `(rotation.x, rotation.y, rotation.z, rotation.w)`
 
 Using a texture-based layout allows an arbitrary number of entities to be uploaded from JavaScript and accessed efficiently from the fragment shader, providing functionality similar to a storage buffer while remaining compatible with WebGL 2.

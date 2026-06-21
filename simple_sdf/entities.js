@@ -16,13 +16,14 @@ class Entities {
     this.nextId = 0;
   }
 
-  add(position, baseColor, radius, roughness, metallic, type, flags) {
+  add(rotation, position, baseColor, radius, roughness, metallic, type, flags) {
     if (this.entities.length >= this.maxEntities) {
       console.warn('Entities: max capacity reached');
       return -1;
     }
 
     const entity = {
+      rotation: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w },
       position: { x: position.x, y: position.y, z: position.z },
       baseColor: { r: baseColor.r, g: baseColor.g, b: baseColor.b },
       radius: radius,
@@ -47,7 +48,7 @@ class Entities {
     return this.entities[id] || null;
   }
 
-  update(id, position, baseColor, radius, roughness, metallic, type, flags) {
+  update(id, rotation, position, baseColor, radius, roughness, metallic, type, flags) {
     if (id >= this.entities.length || !this.entities[id]) {
       console.warn(`Entities: invalid ID ${id}`);
       return false;
@@ -55,6 +56,12 @@ class Entities {
 
     const e = this.entities[id];
 
+    if (rotation) {
+      e.rotation.x = rotation.x;
+      e.rotation.y = rotation.y;
+      e.rotation.z = rotation.z;
+      e.rotation.w = rotation.w;
+    }
     if (position) {
       e.position.x = position.x;
       e.position.y = position.y;
@@ -116,11 +123,11 @@ class Entities {
       arr[base + 10] = e.flags;
       arr[base + 11] = 0.0;
 
-      // Texel 3: padding (for future use)
-      arr[base + 12] = 0.0;
-      arr[base + 13] = 0.0;
-      arr[base + 14] = 0.0;
-      arr[base + 15] = 0.0;
+      // Texel 3: quaternion rotation
+      arr[base + 12] = e.rotation.x;
+      arr[base + 13] = e.rotation.y;
+      arr[base + 14] = e.rotation.z;
+      arr[base + 15] = e.rotation.w;
 
       offset++;
     }

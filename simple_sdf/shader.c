@@ -13,7 +13,7 @@ const uint SPHERE = 0u;
 const uint BOX = 1u;
 const uint PLANE = 2u;
 
-void getEntityData(int index, out vec3 pos, out vec3 color, out float radius,
+void getEntityData(int index, out vec4 rot, out vec3 pos, out vec3 color, out float radius,
                    out float roughness, out float metallic, out uint type, out uint flags)
 {
     int base = index * 4;
@@ -21,6 +21,7 @@ void getEntityData(int index, out vec3 pos, out vec3 color, out float radius,
     vec4 texel_0 = texelFetch(iEntityTexture, ivec2(base, 0), 0);
     vec4 texel_1 = texelFetch(iEntityTexture, ivec2(base + 1, 0), 0);
     vec4 texel_2 = texelFetch(iEntityTexture, ivec2(base + 2, 0), 0);
+    vec4 texel_3 = texelFetch(iEntityTexture, ivec2(base + 3, 0), 0);
 
     pos = texel_0.xyz;
     radius = texel_0.w;
@@ -29,19 +30,22 @@ void getEntityData(int index, out vec3 pos, out vec3 color, out float radius,
     metallic = texel_2.x;
     type = uint(texel_2.y + 0.5);
     flags = uint(texel_2.z + 0.5);
+    rot = texel_3;
 }
 
-void getSimpleEntityData(int index, out vec3 pos, out float radius, out uint type, out uint flags)
+void getSimpleEntityData(int index, out vec4 rot, out vec3 pos, out float radius, out uint type, out uint flags)
 {
     int base = index * 4;
 
     vec4 texel_0 = texelFetch(iEntityTexture, ivec2(base, 0), 0);
     vec4 texel_2 = texelFetch(iEntityTexture, ivec2(base + 2, 0), 0);
+    vec4 texel_3 = texelFetch(iEntityTexture, ivec2(base + 3, 0), 0);
 
     pos = texel_0.xyz;
     radius = texel_0.w;
     type = uint(texel_2.y + 0.5);
     flags = uint(texel_2.z + 0.5);
+    rot = texel_3;
 }
 
 void getMaterial(int index, out vec3 color, out float roughness, out float metallic)
@@ -62,10 +66,11 @@ float GetDist(vec3 p, out int index)
     for (int i = 0; i < iEntityCount; i++)
     {
         float d = 1e20;
+        vec4 rot;
         vec3 pos;
         float radius;
         uint type, flags;
-        getSimpleEntityData(i, pos, radius, type, flags);
+        getSimpleEntityData(i, rot, pos, radius, type, flags);
 
         if (flags == 0u)
             continue;

@@ -474,6 +474,7 @@ async function loadShader() {
     let engine = new Engine(state.entities, canvas, userShaderCode);
 
     engine.entities.add(
+      { x: 0.0, y: 0.0, z: 0.0, w: 0.0 },// rotation (quaternion)
       { x: -1.5, y: 0.0, z: 0.0 },       // position
       { r: 0.9, g: 0.95, b: 1.0 },       // baseColor (chrome)
       1.0,                               // radius
@@ -483,6 +484,7 @@ async function loadShader() {
       1                                  // flags: active
     );
     engine.entities.add(
+      { x: 0.0, y: 0.0, z: 0.0, w: 0.0 },// rotation (quaternion)
       { x: 1.5, y: 0.0, z: 0.0 },        // position
       { r: 1.0, g: 0.75, b: 0.3 },       // baseColor (gold)
       1.0,                               // radius
@@ -492,6 +494,7 @@ async function loadShader() {
       1                                  // flags: active
     );
     engine.entities.add(
+      { x: 0.0, y: 0.0, z: 0.0, w: 0.0 },// rotation (quaternion)
       { x: 0.0, y: -1.0, z: 0.0 },       // position (floor plane)
       { r: 0, g: 0, b: 0 },        // baseColor
       0.0,                               // radius (unused for plane)
