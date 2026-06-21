@@ -342,6 +342,22 @@ function renderTable() {
               <td>
                   <div style="display:flex;gap:2px;">
                       <input class="entity-input-sm" type="number" step="0.1" 
+                          value="${e.rotation.x.toFixed(2)}" 
+                          data-id="${i}" data-field="rotX" onchange="updateEntity(this)" />
+                      <input class="entity-input-sm" type="number" step="0.1" 
+                          value="${e.rotation.y.toFixed(2)}" 
+                          data-id="${i}" data-field="rotY" onchange="updateEntity(this)" />
+                      <input class="entity-input-sm" type="number" step="0.1" 
+                          value="${e.rotation.z.toFixed(2)}" 
+                          data-id="${i}" data-field="rotZ" onchange="updateEntity(this)" />
+                      <input class="entity-input-sm" type="number" step="0.1" 
+                          value="${e.rotation.w.toFixed(2)}" 
+                          data-id="${i}" data-field="rotW" onchange="updateEntity(this)" />
+                  </div>
+              </td>
+              <td>
+                  <div style="display:flex;gap:2px;">
+                      <input class="entity-input-sm" type="number" step="0.1" 
                           value="${e.position.x.toFixed(2)}" 
                           data-id="${i}" data-field="posX" onchange="updateEntity(this)" />
                       <input class="entity-input-sm" type="number" step="0.1" 
@@ -389,9 +405,13 @@ function renderTable() {
 }
 
 window.addEntity = function () {
-  const x = parseFloat(document.getElementById('addX').value) || 0;
-  const y = parseFloat(document.getElementById('addY').value) || 0;
-  const z = parseFloat(document.getElementById('addZ').value) || 0;
+  const rotX = parseFloat(document.getElementById('addrX').value) || 0;
+  const rotY = parseFloat(document.getElementById('addrY').value) || 0;
+  const rotZ = parseFloat(document.getElementById('addrZ').value) || 0;
+  const rotW = parseFloat(document.getElementById('addrW').value) || 0;
+  const posX = parseFloat(document.getElementById('addpX').value) || 0;
+  const posY = parseFloat(document.getElementById('addpY').value) || 0;
+  const posZ = parseFloat(document.getElementById('addpZ').value) || 0;
   const colorHex = document.getElementById('addColor').value;
   const rgb = hexToRgb(colorHex);
   const radius = parseFloat(document.getElementById('addRadius').value) || 0.5;
@@ -400,7 +420,8 @@ window.addEntity = function () {
   const type = parseInt(document.getElementById('addType').value);
 
   state.entities.add(
-    { x, y, z },
+    { x: rotX, y: rotY, z: rotZ, w: rotW },
+    { x: posX, y: posY, z: posZ },
     { r: rgb.r, g: rgb.g, b: rgb.b },
     radius, roughness, metallic, type, 1
   );
@@ -425,6 +446,10 @@ window.updateEntity = function (element) {
     case 'type':
       entity.type = parseInt(value);
       break;
+    case 'rotX': entity.rotation.x = parseFloat(value); break;
+    case 'rotY': entity.rotation.y = parseFloat(value); break;
+    case 'rotZ': entity.rotation.z = parseFloat(value); break;
+    case 'rotW': entity.rotation.w = parseFloat(value); break;
     case 'posX': entity.position.x = parseFloat(value); break;
     case 'posY': entity.position.y = parseFloat(value); break;
     case 'posZ': entity.position.z = parseFloat(value); break;
