@@ -102,8 +102,8 @@ float GetDist(vec3 p, out int index)
             d = length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
             break;
         case PLANE:
-            vec3 normal = vec3(0.0, 1.0, 0.0);
-            d = dot(localP, normal);
+            vec3 normal = quatRotate(rot, vec3(0.0, 1.0, 0.0));
+            d = dot(p - pos, normal);
             break;
         case TORUS:
             vec2 q_ = vec2(length(localP.xz) - scale.x, localP.y);
@@ -184,10 +184,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
         if (d < MAX_DIST)
         {
             vec3 p = ro + rd * d;
-            // vec3 baseColor;
-            // float roughness, metallic;
-            // getMaterial(last_shape_id, baseColor, roughness, metallic);
-            finalColor = vec3(1.0, 1.0, 1.0) / float(steps);
+            vec3 baseColor;
+            float roughness, metallic;
+            getMaterial(last_shape_id, baseColor, roughness, metallic);
+            finalColor = baseColor / float(steps);
         }
         else
         {

@@ -169,7 +169,7 @@ class Engine {
       this.gl.TEXTURE_2D,
       0,
       this.gl.RGBA32F,
-      this.entities.maxEntities * 4, // width
+      this.entities.maxEntities * 5, // width
       1,                             // height
       0,
       this.gl.RGBA,
@@ -223,12 +223,13 @@ class Engine {
       this.gl.TEXTURE_2D,
       0,                    // mip level
       0, 0,                 // x, y offset
-      this.entities.maxEntities * 4, // width = entities * 4 texels
+      this.entities.maxEntities * 5, // width = entities * 5 texels
       1,                    // height = 1 row
       this.gl.RGBA,
       this.gl.FLOAT,
       data
     );
+    console.log('Entity texture updated, length:', data.length);
   }
 
   resize() {
@@ -326,7 +327,7 @@ function renderTable() {
     if (e === null) continue;
 
     const isSelected = state.selectedId === i;
-    const typeNames = ['Sphere', 'Box', 'Plane'];
+    const typeNames = ['Sphere', 'Box', 'Plane', 'Torus'];
     const colorHex = rgbToHex(e.baseColor.r, e.baseColor.g, e.baseColor.b);
     html += `
           <tr style="${isSelected ? 'background: #1a2a3a;' : ''}">
@@ -455,7 +456,6 @@ window.updateEntity = function (element) {
     case 'rotX': entity.rotation.x = parseFloat(value); break;
     case 'rotY': entity.rotation.y = parseFloat(value); break;
     case 'rotZ': entity.rotation.z = parseFloat(value); break;
-    case 'rotW': entity.rotation.w = parseFloat(value); break;
     case 'posX': entity.position.x = parseFloat(value); break;
     case 'posY': entity.position.y = parseFloat(value); break;
     case 'posZ': entity.position.z = parseFloat(value); break;
@@ -508,7 +508,7 @@ async function loadShader() {
     let engine = new Engine(state.entities, canvas, userShaderCode);
 
     engine.entities.add(
-      { x: 0.0, y: 0.0, z: 0.0, w: 1.0 },// rotation (quaternion)
+      { x: 0.0, y: 0.0, z: 0.0 },// rotation
       { x: -1.5, y: 0.0, z: 0.0 },       // position
       { r: 0.9, g: 0.95, b: 1.0 },       // baseColor (chrome)
       { x: 1.0, y: 1.0, z: 1.0 },        // scale
@@ -518,7 +518,7 @@ async function loadShader() {
       1                                  // flags: active
     );
     engine.entities.add(
-      { x: 0.0, y: 0.0, z: 0.0, w: 1.0 },// rotation (quaternion)
+      { x: 0.0, y: 0.0, z: 0.0 },// rotation
       { x: 1.5, y: 0.0, z: 0.0 },        // position
       { r: 1.0, g: 0.75, b: 0.3 },       // baseColor (gold)
       { x: 1.0, y: 1.0, z: 1.0 },        // scale
@@ -528,7 +528,7 @@ async function loadShader() {
       1                                  // flags: active
     );
     engine.entities.add(
-      { x: 0.0, y: 0.0, z: 0.0, w: 1.0 },// rotation (quaternion)
+      { x: 0.0, y: 0.0, z: 0.0 },// rotation
       { x: 0.0, y: -1.0, z: 0.0 },       // position (floor plane)
       { r: 0, g: 0, b: 0 },        // baseColor
       { x: 1.0, y: 1.0, z: 1.0 },        // scale

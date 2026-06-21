@@ -1,7 +1,8 @@
 const EntityType = {
   SPHERE: 0,
   BOX: 1,
-  PLANE: 2
+  PLANE: 2,
+  TORUS: 3
 };
 
 const Flags = {
