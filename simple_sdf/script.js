@@ -1,10 +1,16 @@
 import { Entities, EntityType } from "./entities.js";
 
+const state = {
+  entities: new Entities(128),
+  engine: null,
+  selectedId: -1,
+};
+
 class Engine {
-  constructor(userShaderCode) {
+  constructor(entities, canvas, userShaderCode) {
     this.userShaderCode = userShaderCode;
 
-    this.canvas = document.querySelector('canvas');
+    this.canvas = canvas;
     this.gl = this.canvas.getContext("webgl2");
 
     if (!this.gl) {
@@ -80,8 +86,13 @@ class Engine {
         }
       }
     }, { passive: true });
+    this.canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      this.iCameraDist = Math.max(2, Math.min(20, this.iCameraDist + e.deltaY * 0.01));
+    });
+    this.iCameraDist = 5.0;
 
-    this.entities = new Entities(128);
+    this.entities = entities;
 
     this.initShaders();
 
@@ -107,11 +118,12 @@ class Engine {
     const fragmentShaderSource = `#version 300 es
       precision highp float;
 
-      uniform vec2  iResolution;
-      uniform float iTime;
-      uniform vec4  iMouse;
+      uniform vec2      iResolution;
+      uniform float     iTime;
+      uniform vec4      iMouse;
+      uniform float     iCameraDist;
       uniform sampler2D iEntityTexture;
-      uniform int iEntityCount;
+      uniform int       iEntityCount;
 
       ${this.userShaderCode}
 
@@ -140,6 +152,7 @@ class Engine {
     this.uResolution = this.gl.getUniformLocation(this.program, 'iResolution');
     this.uTime = this.gl.getUniformLocation(this.program, 'iTime');
     this.uMouse = this.gl.getUniformLocation(this.program, 'iMouse');
+    this.uCameraDist = this.gl.getUniformLocation(this.program, 'iCameraDist');
     this.uEntityCount = this.gl.getUniformLocation(this.program, "iEntityCount");
 
     this.texture = this.gl.createTexture();
@@ -219,8 +232,9 @@ class Engine {
   }
 
   resize() {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const rect = this.canvas.parentElement.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
     this.canvas.width = w;
     this.canvas.height = h;
     this.canvas.style.width = w + 'px';
@@ -249,10 +263,9 @@ class Engine {
       this.lastFpsUpdate = now;
 
       this.fpsElement.textContent = this.fps;
+      fpsDisplay.textContent = this.fps;
       this.frameTimeElement.textContent = this.avgFrameTime.toFixed(1);
     }
-
-    this.updateEntityTexture();
 
     const w = this.canvas.width;
     const h = this.canvas.height;
@@ -262,6 +275,7 @@ class Engine {
     this.gl.uniform2f(this.uResolution, w, h);
     this.gl.uniform1f(this.uTime, elapsed);
     this.gl.uniform4f(this.uMouse, iMouseX, iMouseY, 0.0, 0.0);
+    this.gl.uniform1f(this.uCameraDist, this.iCameraDist);
     this.gl.uniform1i(this.uEntityCount, this.entities.count());
 
     this.gl.clearColor(0.02, 0.02, 0.04, 1);
@@ -272,13 +286,192 @@ class Engine {
   }
 }
 
+const canvas = document.getElementById('glcanvas');
+const tbody = document.getElementById('entityTableBody');
+const entityCountSpan = document.getElementById('entityCount');
+const entityCountDisplay = document.getElementById('entityCountDisplay');
+const fpsDisplay = document.getElementById('fpsDisplay');
+
+function initDefaultScene() {
+  const e = state.entities;
+
+  // Chrome sphere (bobbing)
+  e.add(
+    { x: -1.5, y: 0.0, z: 0.0 },
+    { r: 0.9, g: 0.95, b: 1.0 },
+    1.0, 0.01, 0.9, 0, 1
+  );
+
+  // Gold sphere (bobbing)
+  e.add(
+    { x: 1.5, y: 0.0, z: 0.0 },
+    { r: 1.0, g: 0.75, b: 0.3 },
+    1.0, 0.15, 0.85, 0, 1
+  );
+
+  // Floor
+  e.add(
+    { x: 0.0, y: -1.0, z: 0.0 },
+    { r: 0.8, g: 0.8, b: 0.8 },
+    0.0, 0.4, 0.0, 2, 1
+  );
+}
+
+function renderTable() {
+  const entities = state.entities.entities;
+  let html = '';
+
+  for (let i = 0; i < entities.length; i++) {
+    const e = entities[i];
+    if (e === null) continue;
+
+    const isSelected = state.selectedId === i;
+    const typeNames = ['Sphere', 'Box', 'Plane'];
+    const colorHex = rgbToHex(e.baseColor.r, e.baseColor.g, e.baseColor.b);
+
+    html += `
+          <tr style="${isSelected ? 'background: #1a2a3a;' : ''}">
+              <td style="color:#6a7a8a;">${i}</td>
+              <td>
+                  <select class="entity-select" data-id="${i}" data-field="type" onchange="updateEntity(this)">
+                      ${typeNames.map((name, idx) =>
+      `<option value="${idx}" ${idx === e.type ? 'selected' : ''}>${name}</option>`
+    ).join('')}
+                  </select>
+              </td>
+              <td>
+                  <div style="display:flex;gap:2px;">
+                      <input class="entity-input-sm" type="number" step="0.1" 
+                          value="${e.position.x.toFixed(2)}" 
+                          data-id="${i}" data-field="posX" onchange="updateEntity(this)" />
+                      <input class="entity-input-sm" type="number" step="0.1" 
+                          value="${e.position.y.toFixed(2)}" 
+                          data-id="${i}" data-field="posY" onchange="updateEntity(this)" />
+                      <input class="entity-input-sm" type="number" step="0.1" 
+                          value="${e.position.z.toFixed(2)}" 
+                          data-id="${i}" data-field="posZ" onchange="updateEntity(this)" />
+                  </div>
+              </td>
+              <td>
+                  <input class="color-picker" type="color" 
+                      value="${colorHex}" 
+                      data-id="${i}" data-field="color" onchange="updateEntity(this)" />
+              </td>
+              <td>
+                  <input class="entity-input-sm" type="number" step="0.05" 
+                      value="${e.radius.toFixed(2)}" 
+                      data-id="${i}" data-field="radius" onchange="updateEntity(this)" />
+              </td>
+              <td>
+                  <input class="entity-input-sm" type="number" step="0.05" min="0" max="1"
+                      value="${e.roughness.toFixed(2)}" 
+                      data-id="${i}" data-field="roughness" onchange="updateEntity(this)" />
+              </td>
+              <td>
+                  <input class="entity-input-sm" type="number" step="0.05" min="0" max="1"
+                      value="${e.metallic.toFixed(2)}" 
+                      data-id="${i}" data-field="metallic" onchange="updateEntity(this)" />
+              </td>
+              <td>
+                  <div class="row-actions">
+                      <button class="btn btn-danger btn-small" onclick="removeEntity(${i})">✕</button>
+                  </div>
+              </td>
+          </tr>
+      `;
+  }
+
+  tbody.innerHTML = html;
+
+  const count = state.entities.count();
+  entityCountSpan.textContent = `${count} entities`;
+  entityCountDisplay.textContent = count;
+}
+
+window.addEntity = function () {
+  const x = parseFloat(document.getElementById('addX').value) || 0;
+  const y = parseFloat(document.getElementById('addY').value) || 0;
+  const z = parseFloat(document.getElementById('addZ').value) || 0;
+  const colorHex = document.getElementById('addColor').value;
+  const rgb = hexToRgb(colorHex);
+  const radius = parseFloat(document.getElementById('addRadius').value) || 0.5;
+  const roughness = parseFloat(document.getElementById('addRoughness').value) || 0.1;
+  const metallic = parseFloat(document.getElementById('addMetallic').value) || 0.5;
+  const type = parseInt(document.getElementById('addType').value);
+
+  state.entities.add(
+    { x, y, z },
+    { r: rgb.r, g: rgb.g, b: rgb.b },
+    radius, roughness, metallic, type, 1
+  );
+
+  updateScene();
+};
+
+window.removeEntity = function (id) {
+  state.entities.remove(id);
+  updateScene();
+};
+
+window.updateEntity = function (element) {
+  const id = parseInt(element.dataset.id);
+  const field = element.dataset.field;
+  const value = element.value;
+
+  const entity = state.entities.get(id);
+  if (!entity) return;
+
+  switch (field) {
+    case 'type':
+      entity.type = parseInt(value);
+      break;
+    case 'posX': entity.position.x = parseFloat(value); break;
+    case 'posY': entity.position.y = parseFloat(value); break;
+    case 'posZ': entity.position.z = parseFloat(value); break;
+    case 'color': {
+      const rgb = hexToRgb(value);
+      entity.baseColor.r = rgb.r;
+      entity.baseColor.g = rgb.g;
+      entity.baseColor.b = rgb.b;
+      break;
+    }
+    case 'radius': entity.radius = parseFloat(value); break;
+    case 'roughness': entity.roughness = parseFloat(value); break;
+    case 'metallic': entity.metallic = parseFloat(value); break;
+  }
+
+  updateScene();
+};
+
+function rgbToHex(r, g, b) {
+  const toHex = (v) => Math.round(v * 255).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16) / 255,
+    g: parseInt(result[2], 16) / 255,
+    b: parseInt(result[3], 16) / 255
+  } : { r: 1, g: 1, b: 1 };
+}
+
+function updateScene() {
+  if (state.engine) {
+    state.engine.entities = state.entities;
+    state.engine.updateEntityTexture();
+  }
+  renderTable();
+}
+
 async function loadShader() {
   try {
     const response = await fetch('shader.c');
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const userShaderCode = await response.text();
     console.log('Shader loaded, length:', userShaderCode.length);
-    let engine = new Engine(userShaderCode);
+    let engine = new Engine(state.entities, canvas, userShaderCode);
 
     engine.entities.add(
       { x: -1.5, y: 0.0, z: 0.0 },       // position
@@ -308,12 +501,15 @@ async function loadShader() {
       1                                  // flags: active
     );
 
-    window.engine = engine;
-    window.engine.render();
+    state.engine = engine;
+    updateScene();
+    state.engine.render();
   } catch (error) {
     console.error('Failed to load shader:', error);
     document.body.innerHTML = `<pre style="color:#f88;padding:2rem;">Error loading shader.c\n${error}</pre>`;
   }
 }
+
+window.updateScene = updateScene;
 
 loadShader();

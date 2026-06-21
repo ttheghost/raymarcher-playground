@@ -92,7 +92,7 @@ class Entities {
     const totalSize = this.maxEntities * 16;
     let arr = new Float32Array(totalSize);
     let offset = 0;
-    
+
     for (let i = 0; i < this.entities.length; i++) {
       const e = this.entities[i];
       if (e === null) continue;

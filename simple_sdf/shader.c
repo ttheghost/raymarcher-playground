@@ -5,7 +5,7 @@
 // uniform int iEntityCount;
 
 #define MAX_STEPS 150
-#define MAX_DIST 50.
+#define MAX_DIST 30.
 #define SURF_DIST .001
 #define MAX_BOUNCES 3
 
@@ -132,7 +132,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 
     float theta = iMouse.x / 100.0;
     float phi = 0.35 + (iMouse.y / 5000.0);
-    float dist = 5.0;
+    float dist = iCameraDist;
     vec3 target = vec3(0.0, 0.0, 0.0);
 
     vec3 camPos = vec3(
@@ -158,14 +158,14 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
         if (d < MAX_DIST)
         {
             vec3 p = ro + rd * d;
-            vec3 baseColor;
-            float roughness, metallic;
-            getMaterial(last_shape_id, baseColor, roughness, metallic);
-            finalColor += baseColor;
+            // vec3 baseColor;
+            // float roughness, metallic;
+            // getMaterial(last_shape_id, baseColor, roughness, metallic);
+            finalColor = vec3(1.0, 1.0, 1.0) / float(steps);
         }
         else
         {
-            finalColor += throughput * GetSkyColor(rd);
+            finalColor += throughput * GetSkyColor(rd) / float(steps);
             break;
         }
         break;

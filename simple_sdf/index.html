@@ -1,19 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Raymarching Shader + Performance</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <canvas id="glcanvas"></canvas>
-    <div id="perf">
-      <div><span class="label">FPS</span> <span class="value" id="fps">--</span></div>
-      <div><span class="label">frame</span> <span class="value" id="frametime">--</span><span class="dim"> ms</span></div>
-      <div><span class="label">res</span> <span class="value" id="resolution">--</span></div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raymarching Shader + Performance</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="top-bar">
+    <h1>✦ Raymarching Editor</h1>
+    <div class="stats">
+      <span id="fpsDisplay">60</span> FPS ·
+      <span id="entityCountDisplay">0</span> entities
+    </div>
+  </div>
+
+  <div class="main-layout">
+    <!-- Viewport -->
+    <div class="viewport">
+      <canvas id="glcanvas"></canvas>
+      <div class="viewport-overlay">🖱 drag to orbit · scroll to zoom</div>
     </div>
 
-    <script type="module" src="script.js"></script>
-  </body>
+    <!-- Editor Panel -->
+    <div class="editor-panel">
+      <div class="panel-header">
+        <h2>Scene Entities</h2>
+        <span class="entity-count" id="entityCount">0 entities</span>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:20px;">#</th>
+              <th style="width:60px;">Type</th>
+              <th>Pos</th>
+              <th>Color</th>
+              <th style="width:40px;">R</th>
+              <th style="width:40px;">S</th>
+              <th style="width:40px;">M</th>
+              <th style="width:60px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="entityTableBody">
+            <!-- Rows rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Add Entity Form -->
+      <div class="add-form">
+        <div class="add-form-row">
+          <select id="addType" class="entity-select" style="flex:0 0 80px;">
+            <option value="0">Sphere</option>
+            <option value="1">Box</option>
+            <option value="2">Plane</option>
+          </select>
+          <input type="number" id="addX" class="entity-input-sm" value="0" step="0.1" placeholder="x" />
+          <input type="number" id="addY" class="entity-input-sm" value="0" step="0.1" placeholder="y" />
+          <input type="number" id="addZ" class="entity-input-sm" value="0" step="0.1" placeholder="z" />
+          <input type="color" id="addColor" class="color-picker" value="#ff6b6b" />
+          <input type="number" id="addRadius" class="entity-input-sm" value="0.5" step="0.1" placeholder="R" />
+          <input type="number" id="addRoughness" class="entity-input-sm" value="0.1" step="0.05" placeholder="Rough" />
+          <input type="number" id="addMetallic" class="entity-input-sm" value="0.5" step="0.05" placeholder="Met" />
+          <button class="btn btn-primary" onclick="addEntity()">+ Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="perf" style="display: none;">
+    <div><span class="label">FPS</span> <span class="value" id="fps">--</span></div>
+    <div><span class="label">frame</span> <span class="value" id="frametime">--</span><span class="dim"> ms</span></div>
+    <div><span class="label">res</span> <span class="value" id="resolution">--</span></div>
+  </div>
+
+  <script type="importmap">
+        {
+            "imports": {
+                "./entities.js": "./entities.js"
+            }
+        }
+    </script>
+
+  <script type="module" src="script.js"></script>
+</body>
+
 </html>
